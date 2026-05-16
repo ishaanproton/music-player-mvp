@@ -17,19 +17,19 @@ echo "Starting Music Player MVP..."
 
 # Start Backend
 echo "Starting Backend on port 8000..."
-cd backend
+cd api
 if [ ! -d "venv" ]; then
     python3 -m venv venv
 fi
 source venv/bin/activate
-pip install -r requirements.txt > /dev/null
-python3 main.py &
+pip install -r ../requirements.txt > /dev/null
+python3 index.py &
 
 # Wait a moment for backend to initialize
 sleep 2
 
 # Start Frontend
 echo "Starting Frontend on port 5173..."
-cd ../frontend
+cd ..
 npm install > /dev/null
 npm run dev

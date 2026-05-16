@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException
+import os
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from ytmusicapi import YTMusic
 import httpx
@@ -6,13 +7,32 @@ import re
 
 app = FastAPI(title="Music Player MVP API")
 
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For local development
+    allow_origins=["*"],  # Restrict this in production if you have a specific domain
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# API Secret Key configuration
+# Defaults to a standard key for local dev. In Vercel, set the API_SECRET environment variable.
+API_SECRET = os.getenv("API_SECRET", "soundflow_secret_key_123")
+
+@app.middleware("http")
+async def verify_api_key(request: Request, call_next):
+    # Allow OPTIONS requests to pass through for CORS preflight
+    if request.method == "OPTIONS":
+        return await call_next(request)
+        
+    # Check for the custom security header
+    api_key = request.headers.get("x-api-key")
+    if api_key != API_SECRET:
+        from fastapi.responses import JSONResponse
+        return JSONResponse(status_code=401, content={"detail": "Unauthorized access. Invalid API key."})
+        
+    return await call_next(request)
 
 yt = YTMusic()
 
